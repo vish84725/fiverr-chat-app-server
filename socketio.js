@@ -3,6 +3,8 @@ const chat = require('./routes/chat');
 const conversation = require('./models/conversation');
 const message = require('./models/message');
 const activities = require('./models/activities');
+const { on } = require('./models/conversation');
+let onlineUsers = [];
 
 exports = module.exports = function (io) {
 
@@ -10,14 +12,29 @@ exports = module.exports = function (io) {
 
 
 io.sockets.on('connection', (socket) => {
+
     console.log(' SOCKET ID ON SERVER ' + socket.id);
     socket.on('userdata', (user) =>{
+      console.log('userdata',user);
       socket.username = user.username;
       socket.name = user.name;
+
+      if(user && user.username){
+        let isUserAlreadyExist = onlineUsers.find(u => u == user.username);
+        console.log('alreadyExistUsewr',isUserAlreadyExist,onlineUsers);
+        if(!isUserAlreadyExist){
+          onlineUsers.push(user.username);
+          console.log('push user');
+        }
+        io.sockets.emit('UserIsOnline', onlineUsers);
+      }
       console.log('User ' + socket.username + ' ( ' + socket.name + ', id: ' + socket.id + ' ) ' + ' has CONNECTED');
 
       socket.on('disconnect', () => {
-        console.log('User ' + socket.username + ' ( ' + socket.name +  ', id: ' + socket._id + ' ) ' + ' has DISCONNECTED');
+        console.log('111111',onlineUsers);
+        onlineUsers = onlineUsers.filter(u => u != socket.username);
+        io.sockets.emit('UserIsOffline', user.username);
+        console.log('User ' + socket.username + ' ( ' + socket.name +  ', id: ' + socket._id + ' ) ' + ' has DISCONNECTED',onlineUsers);
       });
     });
 
@@ -64,6 +81,11 @@ io.sockets.on('connection', (socket) => {
        await newactivities.save();
     });
 
+    
+    socket.on('log_out', async (userName) => {
+      onlineUsers = onlineUsers.filter(u => u != userName);
+      io.sockets.emit('UserIsOffline', userName);
+    });
 
   });
 
