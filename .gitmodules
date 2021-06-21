@@ -1,0 +1,4 @@
+[submodule "angular-src-mean-user-auth"]
+	path = angular-src-mean-user-auth
+	url = https://github.com/shawn-dsilva/angular-src-mean-user-auth.git
+	branch = master
